@@ -8,7 +8,11 @@ if get(g:, 'loaded_shycursorline') || v:progname[0] !=? 'g'
   unlet! s:save_cpo
   finish
 endif
+
+
 let g:loaded_shycursorline = 1
+let s:default_rto = 10
+let g:shycursorline_rto = s:default_rto
 
 
 function! s:str2rgb(str) "{{{
@@ -43,7 +47,7 @@ function! s:transColor(rgb, rto) "{{{
   return rgb
 endfunction "}}}
 function! s:ShyCursorLine(...) "{{{
-  let rto = get(g:, 'shycursorline_rto', 10)
+  let rto = get(g:, 'shycursorline_rto', s:default_rto)
   if a:0
     let rto += str2nr(a:1)
   endif
@@ -61,15 +65,27 @@ function! s:ShyCursorLine(...) "{{{
   exe 'hi MatchParen   guibg=' . bg2
 endfunction "}}}
 
-augroup ShyCursorLine
-  au!
-  au ColorScheme * call s:ShyCursorLine()
-  au CursorMoved *
-  \   call s:ShyCursorLine()
-  \|  au! ShyCursorLine CursorMoved
-augroup END
+function! s:EnableAutoCmd() "{{{
+  augroup ShyCursorLine
+    au!
+    au ColorScheme * ShyCursorLine
+    au CursorMoved * ShyCursorLine | au! ShyCursorLine CursorMoved
+  augroup END
+endfunction "}}}
+
+function! s:DisableAutoCmd() "{{{
+  augroup ShyCursorLine
+    au!
+  augroup END
+endfunction "}}}
 
 command! -nargs=? ShyCursorLine call s:ShyCursorLine(<q-args>)
+command! ShyCursorLineEnable  call s:EnableAutoCmd()
+command! ShyCursorLineDisable call s:DisableAutoCmd()
+
+if get(g:, 'shycursorline_autocmd', 1)
+  ShyCursorLineEnable
+endif
 
 let &cpoptions = s:save_cpo
 unlet! s:save_cpo
