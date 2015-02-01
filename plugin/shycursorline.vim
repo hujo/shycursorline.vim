@@ -26,8 +26,9 @@ function! s:str2rgb(str) abort "{{{
   return map(split(str, '\x\x\zs'), 'str2nr(v:val, ''16'')')
 endfunction "}}}
 function! s:rgb2str(rgb) abort "{{{
-  return type(a:rgb) == type('')
-  \         ? a:rgb : call('printf', ['#%02x%02x%02x'] + a:rgb)
+  if type(a:rgb) == type('') | return a:rgb | endif
+  let rgb = len(a:rgb) < 3 ? repeat(a:rgb, 3)[:2] : a:rgb
+  return call('printf', ['#%02x%02x%02x'] + rgb)
 endfunction "}}}
 function! s:getSynID(name) abort "{{{
   if !exists('s:synTable')       | let s:synTable = {}       | en
