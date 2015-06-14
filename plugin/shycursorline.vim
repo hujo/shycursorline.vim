@@ -9,6 +9,7 @@ if get(g:, 'loaded_shycursorline') || v:progname[0] !=? 'g'
   finish
 endif
 
+let g:loaded_shycursorline = 1
 let s:default_rto = 10
 let s:default_his = [
 \   'hi LineNr       guibg={bg1}'
@@ -16,10 +17,17 @@ let s:default_his = [
 \ , 'hi CursorLineNr guibg={bg2}'
 \ , 'hi CursorLine   guibg={bg2}'
 \]
-let s:default_opt = ['hi MatchParen guibg={bg2} gui=underline,bold']
-let g:shycursorline_rto = get(g:, 'shycursorline_rto', s:default_rto)
+let s:default_opt = []
 let g:shycursorline_opt = get(g:, 'shycursorline_opt', s:default_opt)
-let g:loaded_shycursorline = 1
+let g:shycursorline_rto = get(g:, 'shycursorline_rto', s:default_rto)
+" Value: [String or [String, ratio::Number]
+" Usage:
+" let g:shycursorline_opt = [
+" \   'hi MatchParen guibg={bg2} gui=underline,bold'
+" \ , 'hi Folded guibg={bg2}'
+" \ , 'hi FoldColumn guibg={bg2}'
+" \ , ['hi SpecialKey guifg={bg2}', 30]
+" \]
 
 function! s:str2rgb(str) abort "{{{
   let str = a:str[0] ==# '#' ? a:str[1:] : a:str
@@ -67,12 +75,24 @@ function! s:ShyCursorLine(rto) abort "{{{
   call s:DoHi(s:getBgs(rto))
 endfunction "}}}
 function! s:DoHi(bgs) abort "{{{
-  let [bg1, bg2] = a:bgs
   let opt = get(g:, 'shycursorline_opt', s:default_opt)
-  for line in s:default_his + opt
+  for value in s:default_his + opt
+    if type(value) == type('')
+      let line = value
+      let [bg1, bg2] = a:bgs
+    elseif type(value) == type([])
+      if len(value) != 2 | continue | endif
+      if type(value[0]) != type('') | continue | endif
+      if type(value[1]) != type(0)  | continue | endif
+      let line = value[0]
+      let [bg1, bg2] = s:getBgs(value[1])
+    else
+      continue
+    endif
     let line = substitute(line, '{bg1}', bg1, 'g')
     let line = substitute(line, '{bg2}', bg2, 'g')
     silent! exe line
+    unlet! value
   endfor
 endfunction "}}}
 function! s:CursorMoved() abort "{{{
