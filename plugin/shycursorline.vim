@@ -3,7 +3,14 @@ scriptencoding utf-8
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-if get(g:, 'loaded_shycursorline') || !(v:progname[0] ==? 'g' || has('gui_running'))
+function! s:isLoadThisFile()
+  if get(g:, 'loaded_shycursorline')             | return 0 | endif
+  if v:progname[0] ==? 'g' || has('gui_running') | return 1 | endif
+  if has('termguicolors') && &termguicolors      | return 1 | endif
+  return 0
+endfunction
+
+if !s:isLoadThisFile()
   let &cpoptions = s:save_cpo
   unlet! s:save_cpo
   finish
